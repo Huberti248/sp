@@ -31,34 +31,35 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
 
 int main(int argc, char* argv[])
 {
-	std::string premakePath = "c:\\home\\dev\\sp\\premake";
-	std::string defPath = "c:\\home\\dev\\";
-	std::string templatesPath = "c:\\home\\dev\\sp\\templates\\";
-	std::string projName;
-	std::cout << "Type project name (may include \\ to put in subfolder): ";
-	std::getline(std::cin, projName);
-	while (fs::exists(defPath + projName)) {
-		std::cout << defPath + projName << " already exists. Type project name: ";
+	try {
+		std::string premakePath = "c:\\home\\dev\\sp\\premake";
+		std::string defPath = "c:\\home\\dev\\";
+		std::string templatesPath = "c:\\home\\dev\\sp\\templates\\";
+		std::string projName;
+		std::cout << "Type project name (may include \\ to put in subfolder): ";
 		std::getline(std::cin, projName);
-	}
-	std::string number;
-	std::cout << "1. basic" << std::endl << "2. full" << std::endl << "Type number: ";
-	std::cin >> number;
-	while (number != "1" && number != "2") {
-		std::cout << "Unknown number. Type number: ";
-		std::cin >> number;
-	}
-	// TODO: Error handling?
-	// TODO: Instead of hard codeing numbers and folder names one could just scan templates directory to get them :)
-	// TODO: Use threads when copying to make it much more faster!!! :-)
-	fs::create_directory(defPath + projName);
-	if (number == "1") {
-		for (auto entry : fs::directory_iterator(templatesPath + "basic")) {
-			fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
+		while (fs::exists(defPath + projName)) {
+			std::cout << defPath + projName << " already exists. Type project name: ";
+			std::getline(std::cin, projName);
 		}
-		char script[1024 * 50]{};
-		std::sprintf(script,
-			R"(workspace "%s"
+		std::string number;
+		std::cout << "1. basic" << std::endl << "2. full" << std::endl << "Type number: ";
+		std::cin >> number;
+		while (number != "1" && number != "2") {
+			std::cout << "Unknown number. Type number: ";
+			std::cin >> number;
+		}
+		// TODO: Error handling?
+		// TODO: Instead of hard codeing numbers and folder names one could just scan templates directory to get them :)
+		// TODO: Use threads when copying to make it much more faster!!! :-)
+		fs::create_directory(defPath + projName);
+		if (number == "1") {
+			for (auto entry : fs::directory_iterator(templatesPath + "basic")) {
+				fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
+			}
+			char script[1024 * 50]{};
+			std::sprintf(script,
+				R"(workspace "%s"
 
 architecture "x86"
 location "../"
@@ -92,19 +93,19 @@ project "%s"
 	filter "configurations:Release"
 		optimize "On"
 			)", projName.c_str(), projName.c_str());
-		{
-			std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
-			ofs << script;
+			{
+				std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
+				ofs << script;
+			}
+			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && START /B ..\\" + projName + ".sln");
 		}
-		runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && START /B ..\\" + projName + ".sln");
-	}
-	if (number == "2") {
-		for (auto entry : fs::directory_iterator(templatesPath + "full")) {
-			fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
-		}
-		char script[1024 * 50]{};
-		std::sprintf(script,
-			R"(workspace "%s"
+		if (number == "2") {
+			for (auto entry : fs::directory_iterator(templatesPath + "full")) {
+				fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
+			}
+			char script[1024 * 50]{};
+			std::sprintf(script,
+				R"(workspace "%s"
 
 architecture "x86"
 location "../"
@@ -146,6 +147,7 @@ project "%s"
         "../vendor/GLEW/include",
         "../vendor/GLM/include",
         "../vendor/SFML/include",
+        "../vendor/PUGIXML/src",
     }
    
     libdirs{
@@ -189,6 +191,7 @@ project "%s"
 
 	files{
 		"../main.cpp",
+		"../vendor/PUGIXML/src/pugixml.cpp",
 	}
 
 	defines "SFML_STATIC"
@@ -199,56 +202,64 @@ project "%s"
 	filter "configurations:Release"
 		optimize "On"
 			)", projName.c_str(), projName.c_str());
-		{
-			std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
-			ofs << script;
-		}
-		{
-			std::ifstream ifs(defPath + projName + "\\main.cpp");
-			std::stringstream ss;
-			ss << ifs.rdbuf();
-			ifs.close();
-			std::string content = ss.str();
-			findAndReplaceAll(content, "AppName_", projName);
-			std::ofstream ofs(defPath + projName + "\\main.cpp");
-			ofs << content;
-		}
-		{
-			std::ifstream ifs(defPath + projName + "\\deploy.iss");
-			std::stringstream ss;
-			ss << ifs.rdbuf();
-			ifs.close();
-			std::string content = ss.str();
-			findAndReplaceAll(content, "AppName_", projName);
-			std::ofstream ofs(defPath + projName + "\\deploy.iss");
-			ofs << content;
-		}
-		{
-			std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
-			std::stringstream ss;
-			ss << ifs.rdbuf();
-			ifs.close();
-			std::string content = ss.str();
-			findAndReplaceAll(content, "AppName_", projName);
-			std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
-			ofs << content;
-		}
+			{
+				std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
+				ofs << script;
+			}
+			{
+				std::ifstream ifs(defPath + projName + "\\main.cpp");
+				std::stringstream ss;
+				ss << ifs.rdbuf();
+				ifs.close();
+				std::string content = ss.str();
+				findAndReplaceAll(content, "AppName_", projName);
+				std::ofstream ofs(defPath + projName + "\\main.cpp");
+				ofs << content;
+			}
+			{
+				std::ifstream ifs(defPath + projName + "\\deploy.iss");
+				std::stringstream ss;
+				ss << ifs.rdbuf();
+				ifs.close();
+				std::string content = ss.str();
+				findAndReplaceAll(content, "AppName_", projName);
+				std::ofstream ofs(defPath + projName + "\\deploy.iss");
+				ofs << content;
+			}
+			{
+				std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
+				std::stringstream ss;
+				ss << ifs.rdbuf();
+				ifs.close();
+				std::string content = ss.str();
+				findAndReplaceAll(content, "AppName_", projName);
+				std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
+				ofs << content;
+			}
 #if 0 // NOTE: App stops to work when it's turned on
-		std::string lowerCaseProjName = projName;
-		std::transform(lowerCaseProjName.begin(), lowerCaseProjName.end(), lowerCaseProjName.begin(),
-			[](unsigned char c) { return std::tolower(c); });
-		{
-			std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_\\MyApp.java");
-			std::stringstream ss;
-			ss << ifs.rdbuf();
-			ifs.close();
-			std::string content = ss.str();
-			findAndReplaceAll(content, "AppName_", lowerCaseProjName);
-			std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_\\MyApp.java");
-			ofs << content;
-		}
-		fs::rename(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_", defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\" + lowerCaseProjName);
+			std::string lowerCaseProjName = projName;
+			std::transform(lowerCaseProjName.begin(), lowerCaseProjName.end(), lowerCaseProjName.begin(),
+				[](unsigned char c) { return std::tolower(c); });
+			{
+				std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_\\MyApp.java");
+				std::stringstream ss;
+				ss << ifs.rdbuf();
+				ifs.close();
+				std::string content = ss.str();
+				findAndReplaceAll(content, "AppName_", lowerCaseProjName);
+				std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_\\MyApp.java");
+				ofs << content;
+			}
+			fs::rename(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_", defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\" + lowerCaseProjName);
 #endif
-		runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && START /B ..\\" + projName + ".sln");
+#if 1
+			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && START /B ..\\" + projName + ".sln");
+#else // NOTE: With git -> but it takes much more time
+			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && cd.. && git init && git add * && git commit -a -m \"Initial commit\" && START /B ..\\" + projName + ".sln");
+#endif
+		}
+	}
+	catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
 	}
 }
