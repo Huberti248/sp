@@ -34,9 +34,8 @@
 #include <pugixml.hpp>
 #include <filesystem>
 namespace fs = std::filesystem;
-#endif
-
 using namespace std::chrono_literals;
+#endif
 
 // NOTE: Remember to uncomment it on every release
 //#define RELEASE
@@ -72,8 +71,12 @@ int SDL_QueryTextureF(SDL_Texture* texture, Uint32* format, int* access, float* 
 {
 	int wi, hi;
 	int result = SDL_QueryTexture(texture, format, access, &wi, &hi);
-	*w = wi;
-	*h = hi;
+	if(w) {
+		*w = wi;
+	}
+	if(h) {
+		*h = hi;
+	}
 	return result;
 }
 
@@ -229,7 +232,9 @@ struct Text {
 
 	void draw(SDL_Renderer* renderer)
 	{
-		SDL_RenderCopyF(renderer, t, 0, &dstR);
+		if(t) {
+			SDL_RenderCopyF(renderer, t, 0, &dstR);
+		}
 	}
 };
 

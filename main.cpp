@@ -148,6 +148,7 @@ project "%s"
         "../vendor/GLM/include",
         "../vendor/SFML/include",
         "../vendor/PUGIXML/src",
+        "../vendor/BOOST",
     }
    
     libdirs{
@@ -159,6 +160,7 @@ project "%s"
         "../vendor/SDL_gpu/lib/x86",
         "../vendor/GLEW/lib/x86",
         "../vendor/SFML/lib",
+        "../vendor/BOOST/stage/lib",
     }
 
     links{
