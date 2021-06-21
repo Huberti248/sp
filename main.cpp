@@ -192,8 +192,7 @@ project "%s"
     }
 
 	files{
-		-- "../main.cpp",
-		"../androidIsEngine/app/src/main/cpp/main.cpp",
+		"../main.cpp",
 		"../vendor/PUGIXML/src/pugixml.cpp",
 	}
 
@@ -237,16 +236,6 @@ project "%s"
 				std::string content = ss.str();
 				findAndReplaceAll(content, "AppName_", projName);
 				std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
-				ofs << content;
-			}
-			{
-				std::ifstream ifs(defPath + projName + "\\androidIsEngine\\app\\src\\main\\cpp\\main.cpp");
-				std::stringstream ss;
-				ss << ifs.rdbuf();
-				ifs.close();
-				std::string content = ss.str();
-				findAndReplaceAll(content, "AppName_", projName);
-				std::ofstream ofs(defPath + projName + "\\androidIsEngine\\app\\src\\main\\cpp\\main.cpp");
 				ofs << content;
 			}
 #if 0 // NOTE: App stops to work when it's turned on
