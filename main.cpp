@@ -219,16 +219,6 @@ project "%s"
 				ofs << content;
 			}
 			{
-				std::ifstream ifs(defPath + projName + "\\deploy.iss");
-				std::stringstream ss;
-				ss << ifs.rdbuf();
-				ifs.close();
-				std::string content = ss.str();
-				findAndReplaceAll(content, "AppName_", projName);
-				std::ofstream ofs(defPath + projName + "\\deploy.iss");
-				ofs << content;
-			}
-			{
 				std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
 				std::stringstream ss;
 				ss << ifs.rdbuf();
