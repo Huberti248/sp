@@ -334,6 +334,129 @@ int SDL_RenderFillCircle(SDL_Renderer* renderer, int x, int y, int radius)
     return status;
 }
 
+struct Clock {
+    Uint64 start = SDL_GetPerformanceCounter();
+
+    float getElapsedTime()
+    {
+        Uint64 stop = SDL_GetPerformanceCounter();
+        float secondsElapsed = (stop - start) / (float)SDL_GetPerformanceFrequency();
+        return secondsElapsed * 1000;
+    }
+
+    float restart()
+    {
+        Uint64 stop = SDL_GetPerformanceCounter();
+        float secondsElapsed = (stop - start) / (float)SDL_GetPerformanceFrequency();
+        start = SDL_GetPerformanceCounter();
+        return secondsElapsed * 1000;
+    }
+};
+
+SDL_bool SDL_FRectEmpty(const SDL_FRect* r)
+{
+    return ((!r) || (r->w <= 0) || (r->h <= 0)) ? SDL_TRUE : SDL_FALSE;
+}
+
+SDL_bool SDL_IntersectFRect(const SDL_FRect* A, const SDL_FRect* B, SDL_FRect* result)
+{
+    int Amin, Amax, Bmin, Bmax;
+
+    if (!A) {
+        SDL_InvalidParamError("A");
+        return SDL_FALSE;
+    }
+
+    if (!B) {
+        SDL_InvalidParamError("B");
+        return SDL_FALSE;
+    }
+
+    if (!result) {
+        SDL_InvalidParamError("result");
+        return SDL_FALSE;
+    }
+
+    /* Special cases for empty rects */
+    if (SDL_FRectEmpty(A) || SDL_FRectEmpty(B)) {
+        result->w = 0;
+        result->h = 0;
+        return SDL_FALSE;
+    }
+
+    /* Horizontal intersection */
+    Amin = A->x;
+    Amax = Amin + A->w;
+    Bmin = B->x;
+    Bmax = Bmin + B->w;
+    if (Bmin > Amin)
+        Amin = Bmin;
+    result->x = Amin;
+    if (Bmax < Amax)
+        Amax = Bmax;
+    result->w = Amax - Amin;
+
+    /* Vertical intersection */
+    Amin = A->y;
+    Amax = Amin + A->h;
+    Bmin = B->y;
+    Bmax = Bmin + B->h;
+    if (Bmin > Amin)
+        Amin = Bmin;
+    result->y = Amin;
+    if (Bmax < Amax)
+        Amax = Bmax;
+    result->h = Amax - Amin;
+
+    return (SDL_FRectEmpty(result) == SDL_TRUE) ? SDL_FALSE : SDL_TRUE;
+}
+
+SDL_bool SDL_HasIntersectionF(const SDL_FRect* A, const SDL_FRect* B)
+{
+    int Amin, Amax, Bmin, Bmax;
+
+    if (!A) {
+        SDL_InvalidParamError("A");
+        return SDL_FALSE;
+    }
+
+    if (!B) {
+        SDL_InvalidParamError("B");
+        return SDL_FALSE;
+    }
+
+    /* Special cases for empty rects */
+    if (SDL_FRectEmpty(A) || SDL_FRectEmpty(B)) {
+        return SDL_FALSE;
+    }
+
+    /* Horizontal intersection */
+    Amin = A->x;
+    Amax = Amin + A->w;
+    Bmin = B->x;
+    Bmax = Bmin + B->w;
+    if (Bmin > Amin)
+        Amin = Bmin;
+    if (Bmax < Amax)
+        Amax = Bmax;
+    if (Amax <= Amin)
+        return SDL_FALSE;
+
+    /* Vertical intersection */
+    Amin = A->y;
+    Amax = Amin + A->h;
+    Bmin = B->y;
+    Bmax = Bmin + B->h;
+    if (Bmin > Amin)
+        Amin = Bmin;
+    if (Bmax < Amax)
+        Amax = Bmax;
+    if (Amax <= Amin)
+        return SDL_FALSE;
+
+    return SDL_TRUE;
+}
+
 int eventWatch(void* userdata, SDL_Event* event)
 {
     // WARNING: Be very careful of what you do in the function, as it may run in a different thread
