@@ -64,10 +64,6 @@ SDL_Point mousePos;
 SDL_Point realMousePos;
 bool keys[SDL_NUM_SCANCODES];
 bool buttons[SDL_BUTTON_X2 + 1];
-SDL_Window* window;
-SDL_Renderer* renderer;
-TTF_Font* robotoF;
-bool running = true;
 
 void logOutputCallback(void* userdata, int category, SDL_LogPriority priority, const char* message)
 {
@@ -414,7 +410,7 @@ SDL_bool SDL_IntersectFRect(const SDL_FRect* A, const SDL_FRect* B, SDL_FRect* r
 
 SDL_bool SDL_HasIntersectionF(const SDL_FRect* A, const SDL_FRect* B)
 {
-    int Amin, Amax, Bmin, Bmax;
+    float Amin, Amax, Bmin, Bmax;
 
     if (!A) {
         SDL_InvalidParamError("A");
@@ -466,43 +462,6 @@ int eventWatch(void* userdata, SDL_Event* event)
     return 0;
 }
 
-void mainLoop()
-{
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT || event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-            running = false;
-            // TODO: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
-        }
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
-            SDL_RenderSetScale(renderer, event.window.data1 / (float)windowWidth, event.window.data2 / (float)windowHeight);
-        }
-        if (event.type == SDL_KEYDOWN) {
-            keys[event.key.keysym.scancode] = true;
-        }
-        if (event.type == SDL_KEYUP) {
-            keys[event.key.keysym.scancode] = false;
-        }
-        if (event.type == SDL_MOUSEBUTTONDOWN) {
-            buttons[event.button.button] = true;
-        }
-        if (event.type == SDL_MOUSEBUTTONUP) {
-            buttons[event.button.button] = false;
-        }
-        if (event.type == SDL_MOUSEMOTION) {
-            float scaleX, scaleY;
-            SDL_RenderGetScale(renderer, &scaleX, &scaleY);
-            mousePos.x = event.motion.x / scaleX;
-            mousePos.y = event.motion.y / scaleY;
-            realMousePos.x = event.motion.x;
-            realMousePos.y = event.motion.y;
-        }
-    }
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
-}
-
 int main(int argc, char* argv[])
 {
     std::srand(std::time(0));
@@ -511,20 +470,49 @@ int main(int argc, char* argv[])
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
     SDL_GetMouseState(&mousePos.x, &mousePos.y);
-    window = SDL_CreateWindow("AppName_", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    robotoF = TTF_OpenFont("res/roboto.ttf", 72);
+    SDL_Window* window = SDL_CreateWindow("AppName_", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    TTF_Font* robotoF = TTF_OpenFont("res/roboto.ttf", 72);
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
     SDL_RenderSetScale(renderer, w / (float)windowWidth, h / (float)windowHeight);
     SDL_AddEventWatch(eventWatch, 0);
-#ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(mainLoop, 0, 1);
-#else
+    bool running = true;
     while (running) {
-        mainLoop();
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT || event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                running = false;
+                // TODO: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
+            }
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                SDL_RenderSetScale(renderer, event.window.data1 / (float)windowWidth, event.window.data2 / (float)windowHeight);
+            }
+            if (event.type == SDL_KEYDOWN) {
+                keys[event.key.keysym.scancode] = true;
+            }
+            if (event.type == SDL_KEYUP) {
+                keys[event.key.keysym.scancode] = false;
+            }
+            if (event.type == SDL_MOUSEBUTTONDOWN) {
+                buttons[event.button.button] = true;
+            }
+            if (event.type == SDL_MOUSEBUTTONUP) {
+                buttons[event.button.button] = false;
+            }
+            if (event.type == SDL_MOUSEMOTION) {
+                float scaleX, scaleY;
+                SDL_RenderGetScale(renderer, &scaleX, &scaleY);
+                mousePos.x = event.motion.x / scaleX;
+                mousePos.y = event.motion.y / scaleY;
+                realMousePos.x = event.motion.x;
+                realMousePos.y = event.motion.y;
+            }
+        }
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
     }
-#endif
     // TODO: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
     return 0;
 }
