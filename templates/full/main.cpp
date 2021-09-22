@@ -64,6 +64,8 @@ SDL_Point mousePos;
 SDL_Point realMousePos;
 bool keys[SDL_NUM_SCANCODES];
 bool buttons[SDL_BUTTON_X2 + 1];
+SDL_Window* window;
+SDL_Renderer* renderer;
 
 void logOutputCallback(void* userdata, int category, SDL_LogPriority priority, const char* message)
 {
@@ -470,8 +472,8 @@ int main(int argc, char* argv[])
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
     SDL_GetMouseState(&mousePos.x, &mousePos.y);
-    SDL_Window* window = SDL_CreateWindow("AppName_", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    window = SDL_CreateWindow("AppName_", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_RESIZABLE);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Font* robotoF = TTF_OpenFont("res/roboto.ttf", 72);
     int w, h;
     SDL_GetWindowSize(window, &w, &h);
