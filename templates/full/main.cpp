@@ -31,9 +31,15 @@
 #include "vendor/PUGIXML/src/pugixml.hpp"
 #include <android/log.h> //__android_log_print(ANDROID_LOG_VERBOSE, "AppName_", "Example number log: %d", number);
 #include <jni.h>
+#include "vendor/GLM/include/glm/glm.hpp"
+#include "vendor/GLM/include/glm/gtc/matrix_transform.hpp"
+#include "vendor/GLM/include/glm/gtc/type_ptr.hpp"
 #else
 #include <filesystem>
 #include <pugixml.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #ifdef __EMSCRIPTEN__
 namespace fs = std::__fs::filesystem;
 #else
@@ -462,6 +468,11 @@ int eventWatch(void* userdata, SDL_Event* event)
     if (event->type == SDL_APP_TERMINATING || event->type == SDL_APP_WILLENTERBACKGROUND) {
     }
     return 0;
+}
+
+float clamp(float n, float lower, float upper)
+{
+    return std::max(lower, std::min(n, upper));
 }
 
 int main(int argc, char* argv[])

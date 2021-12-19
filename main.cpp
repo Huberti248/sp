@@ -5,6 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <thread>
 
 #pragma warning(disable : 4996)
 
@@ -149,6 +150,7 @@ project "%s"
         "../vendor/SFML/include",
         "../vendor/PUGIXML/src",
         "../vendor/BOOST",
+        "../vendor/STB",
     }
    
     libdirs{
@@ -253,5 +255,5 @@ project "%s"
 	}
 	catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
-	}
-}
+			}
+		}
