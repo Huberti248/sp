@@ -44,15 +44,15 @@ int main(int argc, char* argv[])
 			std::getline(std::cin, projName);
 		}
 		std::string number;
-		std::cout << "1. basic" << std::endl << "2. full" << std::endl << "Type number: ";
+		std::cout << "1. basic" << std::endl << "2. full" << std::endl << "3. website" << std::endl << "Type number: ";
 		std::cin >> number;
-		while (number != "1" && number != "2") {
+		while (number != "1" && number != "2" && number != "3") {
 			std::cout << "Unknown number. Type number: ";
 			std::cin >> number;
 		}
 		// TODO: Error handling?
-		// TODO: Instead of hard codeing numbers and folder names one could just scan templates directory to get them :)
-		// TODO: Use threads when copying to make it much more faster!!! :-)
+		// TODO: Instead of hard codeing numbers and folder names one could just scan templates directory to get them.
+		// TODO: Use threads when copying to make it much more faster.
 		fs::create_directory(defPath + projName);
 		if (number == "1") {
 			for (auto entry : fs::directory_iterator(templatesPath + "basic")) {
@@ -252,8 +252,15 @@ project "%s"
 			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && cd.. && git init && git add * && git commit -a -m \"Initial commit\" && START /B ..\\" + projName + ".sln");
 #endif
 		}
+		else if (number == "3")
+		{
+			for (auto entry : fs::directory_iterator(templatesPath + "website")) {
+				fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
+			}
+			runCommand("cd " + defPath + projName + " && code index.html");
+		}
 	}
 	catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
-			}
-		}
+	}
+}
