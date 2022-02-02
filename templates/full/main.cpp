@@ -27,6 +27,10 @@
 #include <locale>
 #include <mutex>
 #include <thread>
+#include <imgui.h>
+#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdlrenderer.h>
+#include <misc/cpp/imgui_stdlib.h>
 #ifdef __ANDROID__
 #include "vendor/PUGIXML/src/pugixml.hpp"
 #include <android/log.h> //__android_log_print(ANDROID_LOG_VERBOSE, "AppName_", "Example number log: %d", number);

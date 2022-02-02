@@ -205,6 +205,7 @@ project "%s"
 		"../vendor/IMGUI/imgui_widgets.cpp",
 		"../vendor/IMGUI/backends/imgui_impl_sdl.cpp",
 		"../vendor/IMGUI/backends/imgui_impl_sdlrenderer.cpp",
+		"../vendor/IMGUI/misc/cpp/imgui_stdlib.cpp",
 	}
 
 	defines "SFML_STATIC"
