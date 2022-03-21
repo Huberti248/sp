@@ -98,7 +98,7 @@ project "%s"
 				std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
 				ofs << script;
 			}
-			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && START /B ..\\" + projName + ".sln");
+			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2022 && START /B ..\\" + projName + ".sln");
 		}
 		if (number == "2") {
 			for (auto entry : fs::directory_iterator(templatesPath + "full")) {
@@ -257,9 +257,9 @@ project "%s"
 			fs::rename(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_", defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\" + lowerCaseProjName);
 #endif
 #if 1
-			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && START /B ..\\" + projName + ".sln");
+			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2022 && START /B ..\\" + projName + ".sln");
 #else // NOTE: With git -> but it takes much more time
-			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2019 && cd.. && git init && git add * && git commit -a -m \"Initial commit\" && START /B ..\\" + projName + ".sln");
+			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2022 && cd.. && git init && git add * && git commit -a -m \"Initial commit\" && START /B ..\\" + projName + ".sln");
 #endif
 		}
 		else if (number == "3")

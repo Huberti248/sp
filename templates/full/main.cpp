@@ -68,6 +68,15 @@ using namespace std::chrono_literals;
 //360 x 640 (Galaxy S5)
 //640 x 480 (480i - Smallest PC monitor)
 
+#define i8 int8_t
+#define i16 int16_t
+#define i32 int32_t
+#define i64 int64_t
+#define u8 uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
+#define u64 uint64_t
+
 int windowWidth = 240;
 int windowHeight = 320;
 SDL_Point mousePos;
@@ -466,17 +475,42 @@ SDL_bool SDL_HasIntersectionF(const SDL_FRect* A, const SDL_FRect* B)
     return SDL_TRUE;
 }
 
+float clamp(float n, float lower, float upper)
+{
+    return std::max(lower, std::min(n, upper));
+}
+
+std::string getCurrentDate()
+{
+	std::time_t t = std::time(0);
+	std::tm* now = std::localtime(&t);
+	std::stringstream ss;
+	ss << (now->tm_year + 1900) << "-" << (now->tm_mon + 1) << "-" << now->tm_mday;
+	return ss.str();
+}
+
+std::string readWholeFile(std::string path)
+{
+    std::stringstream ss;
+    std::ifstream ifs(path, std::ifstream::in);
+    ss << ifs.rdbuf();
+    return ss.str();
+}
+
+void saveToFile(std::string path, std::string str)
+{
+    std::stringstream ss;
+    ss << str;
+    std::ofstream ofs(path);
+    ofs << ss.str();
+}
+
 int eventWatch(void* userdata, SDL_Event* event)
 {
     // WARNING: Be very careful of what you do in the function, as it may run in a different thread
     if (event->type == SDL_APP_TERMINATING || event->type == SDL_APP_WILLENTERBACKGROUND) {
     }
     return 0;
-}
-
-float clamp(float n, float lower, float upper)
-{
-    return std::max(lower, std::min(n, upper));
 }
 
 int main(int argc, char* argv[])
@@ -495,12 +529,21 @@ int main(int argc, char* argv[])
     SDL_RenderSetScale(renderer, w / (float)windowWidth, h / (float)windowHeight);
     SDL_AddEventWatch(eventWatch, 0);
     bool running = true;
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplSDL2_InitForSDLRenderer(window);
+    ImGui_ImplSDLRenderer_Init(renderer);
+    bool showDemoWindow = true;
     while (running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT || event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                 running = false;
-                // TODO: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
+                // NOTE: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
             }
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 SDL_RenderSetScale(renderer, event.window.data1 / (float)windowWidth, event.window.data2 / (float)windowHeight);
@@ -526,10 +569,20 @@ int main(int argc, char* argv[])
                 realMousePos.y = event.motion.y;
             }
         }
+        ImGui_ImplSDLRenderer_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window);
+        io.MousePos.x = mousePos.x;
+        io.MousePos.y = mousePos.y;
+        ImGui::NewFrame();
+        if (showDemoWindow) {
+            ImGui::ShowDemoWindow(&showDemoWindow);
+        }
+        ImGui::Render();
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
+        ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
         SDL_RenderPresent(renderer);
     }
-    // TODO: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
+    // NOTE: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
     return 0;
 }
