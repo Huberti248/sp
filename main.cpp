@@ -6,10 +6,12 @@
 #include <algorithm>
 #include <cctype>
 #include <thread>
+#include "boost/filesystem.hpp"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #pragma warning(disable : 4996)
-
-namespace fs = std::filesystem;
 
 void runCommand(std::string command)
 {
@@ -30,83 +32,15 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
 	}
 }
 
-int main(int argc, char* argv[])
+std::string premakePath = "c:\\home\\dev\\sp\\premake";
+std::string defPath = "c:\\home\\dev\\";
+std::string templatesPath = "c:\\home\\dev\\sp\\templates\\";
+
+void createProject(std::string projectName)
 {
-	try {
-		std::string premakePath = "c:\\home\\dev\\sp\\premake";
-		std::string defPath = "c:\\home\\dev\\";
-		std::string templatesPath = "c:\\home\\dev\\sp\\templates\\";
-		std::string projName;
-		std::cout << "Type project name (may include \\ to put in subfolder): ";
-		std::getline(std::cin, projName);
-		while (fs::exists(defPath + projName)) {
-			std::cout << defPath + projName << " already exists. Type project name: ";
-			std::getline(std::cin, projName);
-		}
-		std::string number;
-		std::cout << "1. basic" << std::endl << "2. full" << std::endl << "3. website" << std::endl << "Type number: ";
-		std::cin >> number;
-		while (number != "1" && number != "2" && number != "3") {
-			std::cout << "Unknown number. Type number: ";
-			std::cin >> number;
-		}
-		// TODO: Error handling?
-		// TODO: Instead of hard codeing numbers and folder names one could just scan templates directory to get them.
-		// TODO: Use threads when copying to make it much more faster.
-		fs::create_directory(defPath + projName);
-		if (number == "1") {
-			for (auto entry : fs::directory_iterator(templatesPath + "basic")) {
-				fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
-			}
-			char script[1024 * 50]{};
-			std::sprintf(script,
-				R"(workspace "%s"
-
-architecture "x86"
-location "../"
-staticruntime "on"
-
-configurations{
-	"Debug",
-	"Release",
-}
-
-platforms{
-	"x86",
-}
-
-project "%s"
-	location "../"
-	language "C++"
-	cppdialect "C++17"
-	kind "ConsoleApp"
-
-	targetdir "../bin/%%{cfg.buildcfg}_%%{cfg.platform}"
-	objdir "../bin/obj/%%{cfg.buildcfg}_%%{cfg.platform}"
-
-	files{
-		"../main.cpp",
-	}
-
-	filter "configurations:Debug"
-		symbols "On"
-
-	filter "configurations:Release"
-		optimize "On"
-			)", projName.c_str(), projName.c_str());
-			{
-				std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
-				ofs << script;
-			}
-			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2022 && START /B ..\\" + projName + ".sln");
-		}
-		if (number == "2") {
-			for (auto entry : fs::directory_iterator(templatesPath + "full")) {
-				fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
-			}
-			char script[1024 * 50]{};
-			std::sprintf(script,
-				R"(workspace "%s"
+	char script[1024 * 50]{};
+	std::sprintf(script,
+		R"(workspace "%s"
 
 architecture "x86"
 location "../"
@@ -215,62 +149,159 @@ project "%s"
 
 	filter "configurations:Release"
 		optimize "On"
-			)", projName.c_str(), projName.c_str());
+			)",
+		projectName.c_str(), projectName.c_str());
+	{
+		std::ofstream ofs(defPath + projectName + "\\premake\\premake5.lua");
+		ofs << script;
+	}
+	{
+		std::ifstream ifs(defPath + projectName + "\\main.cpp");
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		ifs.close();
+		std::string content = ss.str();
+		findAndReplaceAll(content, "AppName_", projectName);
+		std::ofstream ofs(defPath + projectName + "\\main.cpp");
+		ofs << content;
+	}
+	{
+		std::ifstream ifs(defPath + projectName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		ifs.close();
+		std::string content = ss.str();
+		findAndReplaceAll(content, "AppName_", projectName);
+		std::ofstream ofs(defPath + projectName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
+		ofs << content;
+	}
+	std::string lowerCaseProjectName = projectName;
+	std::transform(lowerCaseProjectName.begin(), lowerCaseProjectName.end(), lowerCaseProjectName.begin(),
+		[](unsigned char c) { return std::tolower(c); });
+	{
+		std::ifstream ifs(defPath + projectName + "\\android\\app\\src\\main\\AndroidManifest.xml");
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		ifs.close();
+		std::string content = ss.str();
+		findAndReplaceAll(content, "org.libsdl.app", "com.huberti." + lowerCaseProjectName);
+		std::ofstream ofs(defPath + projectName + "\\android\\app\\src\\main\\AndroidManifest.xml");
+		ofs << content;
+	}
+	boost::filesystem::create_directory(defPath + projectName + "\\android\\app\\src\\main\\java\\com\\huberti\\" + lowerCaseProjectName);
+	{
+		std::ofstream ofs(defPath + projectName + "\\android\\app\\src\\main\\java\\com\\huberti\\" + lowerCaseProjectName + "\\MyApp.java");
+		char javaFile[1024 * 50]{};
+		std::sprintf(javaFile,
+			R"(package com.huberti.%s;
+    
+    import org.libsdl.app.SDLActivity; 
+    
+    /**
+     * A sample wrapper class that just calls SDLActivity 
+     */ 
+    
+    public class MyApp extends SDLActivity { }
+)", lowerCaseProjectName.c_str());
+		ofs << javaFile;
+	}
+	runCommand("cd " + defPath + projectName + "\\premake && premake5.exe vs2022 && cd.. && START /B " + projectName + ".sln");
+}
+
+int main(int argc, char* argv[])
+{
+	try {
+		std::string projectName;
+		std::cout << "Type project name: ";
+		std::getline(std::cin, projectName);
+		while (boost::filesystem::exists(defPath + projectName)) {
+			std::cout << defPath + projectName << " already exists. Type project name: ";
+			std::getline(std::cin, projectName);
+		}
+		std::string number;
+		std::cout << "1. c++WithStdLiblaries" << std::endl << "2. c++WithStdAndExternalLiblaries" << std::endl << "3. website" << std::endl << "Type number: ";
+		std::cin >> number;
+		while (number != "1" && number != "2" && number != "3") {
+			std::cout << "Unknown number. Type number: ";
+			std::cin >> number;
+		}
+		// TODO: Error handling?
+		// TODO: Use threads when copying to make it much more faster.
+		if (number == "1") {
+			boost::filesystem::create_directory(defPath + projectName);
+			for (boost::filesystem::directory_entry entry : boost::filesystem::directory_iterator(templatesPath + "c++WithStdLiblaries")) {
+				boost::filesystem::copy(entry.path(), defPath + projectName + (boost::filesystem::is_directory(entry) ? "\\" + entry.path().filename().string() : ""), boost::filesystem::copy_options::recursive);
+			}
+			char script[1024 * 50]{};
+			std::sprintf(script,
+				R"(workspace "%s"
+
+architecture "x86"
+location "../"
+staticruntime "on"
+
+configurations{
+	"Debug",
+	"Release",
+}
+
+platforms{
+	"x86",
+}
+
+project "%s"
+	location "../"
+	language "C++"
+	cppdialect "C++17"
+	kind "ConsoleApp"
+
+	targetdir "../bin/%%{cfg.buildcfg}_%%{cfg.platform}"
+	objdir "../bin/obj/%%{cfg.buildcfg}_%%{cfg.platform}"
+
+	files{
+		"../main.cpp",
+	}
+
+	filter "configurations:Debug"
+		symbols "On"
+
+	filter "configurations:Release"
+		optimize "On"
+			)", projectName.c_str(), projectName.c_str());
 			{
-				std::ofstream ofs(defPath + projName + "\\premake\\premake5.lua");
+				std::ofstream ofs(defPath + projectName + "\\premake\\premake5.lua");
 				ofs << script;
 			}
+			runCommand("cd " + defPath + projectName + "\\premake && premake5.exe vs2022 && START /B ..\\" + projectName + ".sln");
+		}
+		if (number == "2") {
+			if (boost::filesystem::exists(defPath + "zProject1"))
 			{
-				std::ifstream ifs(defPath + projName + "\\main.cpp");
-				std::stringstream ss;
-				ss << ifs.rdbuf();
-				ifs.close();
-				std::string content = ss.str();
-				findAndReplaceAll(content, "AppName_", projName);
-				std::ofstream ofs(defPath + projName + "\\main.cpp");
-				ofs << content;
+				boost::filesystem::rename(defPath + "zProject1", defPath + projectName);
+				createProject(projectName);
 			}
+			else if (boost::filesystem::exists(defPath + "zProject2"))
 			{
-				std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
-				std::stringstream ss;
-				ss << ifs.rdbuf();
-				ifs.close();
-				std::string content = ss.str();
-				findAndReplaceAll(content, "AppName_", projName);
-				std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\res\\values\\strings.xml");
-				ofs << content;
+				boost::filesystem::rename(defPath + "zProject2", defPath + projectName);
+				createProject(projectName);
 			}
-#if 0 // NOTE: App stops to work when it's turned on
-			std::string lowerCaseProjName = projName;
-			std::transform(lowerCaseProjName.begin(), lowerCaseProjName.end(), lowerCaseProjName.begin(),
-				[](unsigned char c) { return std::tolower(c); });
+			else if (boost::filesystem::exists(defPath + "zProject3"))
 			{
-				std::ifstream ifs(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_\\MyApp.java");
-				std::stringstream ss;
-				ss << ifs.rdbuf();
-				ifs.close();
-				std::string content = ss.str();
-				findAndReplaceAll(content, "AppName_", lowerCaseProjName);
-				std::ofstream ofs(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_\\MyApp.java");
-				ofs << content;
+				boost::filesystem::rename(defPath + "zProject3", defPath + projectName);
+				createProject(projectName);
 			}
-			fs::rename(defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\AppName_", defPath + projName + "\\android\\app\\src\\main\\java\\com\\nextcode\\" + lowerCaseProjName);
-#endif
-#if 1
-			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2022 && START /B ..\\" + projName + ".sln");
-#else // NOTE: With git -> but it takes much more time
-			runCommand("cd " + defPath + projName + "\\premake && premake5.exe vs2022 && cd.. && git init && git add * && git commit -a -m \"Initial commit\" && START /B ..\\" + projName + ".sln");
-#endif
 		}
 		else if (number == "3")
 		{
-			for (auto entry : fs::directory_iterator(templatesPath + "website")) {
-				fs::copy(entry.path(), defPath + projName + (entry.is_directory() ? "\\" + entry.path().filename().string() : ""), fs::copy_options::recursive);
+			boost::filesystem::create_directory(defPath + projectName);
+			for (boost::filesystem::directory_entry entry : boost::filesystem::directory_iterator(templatesPath + "website")) {
+				boost::filesystem::copy(entry.path(), defPath + projectName + (boost::filesystem::is_directory(entry) ? "\\" + entry.path().filename().string() : ""), boost::filesystem::copy_options::recursive);
 			}
-			runCommand("cd " + defPath + projName + " && code index.html");
+			runCommand("cd " + defPath + projectName + " && code index.html");
 		}
 	}
-	catch (std::exception& e) {
+	catch (std::exception e) {
+		MessageBoxA(0, e.what(), "Error", 0);
 		std::cout << e.what() << std::endl;
 	}
 }
