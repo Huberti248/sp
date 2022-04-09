@@ -69,6 +69,8 @@ using namespace std::chrono_literals;
 #define u32 uint32_t
 #define u64 uint64_t
 
+#define BUFFERED_PROJECTS_COUNT 3
+
 int windowWidth = 240;
 int windowHeight = 320;
 SDL_Point mousePos;
@@ -505,11 +507,6 @@ int eventWatch(void* userdata, SDL_Event* event)
     return 0;
 }
 
-void runCommand(std::string command)
-{
-    WinExec(command.c_str(), SW_HIDE);
-}
-
 void findAndReplaceAll(std::string& data, std::string toSearch, std::string replaceStr)
 {
     // Get the first occurrence
@@ -524,39 +521,22 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
     }
 }
 
-std::string premakePath = "c:\\home\\dev\\sp\\premake";
-std::string defPath = "c:\\home\\dev\\";
-std::string templatesPath = "c:\\home\\dev\\sp\\templates\\";
-
-void createProject(std::string projectName)
-{
-    boost::filesystem::create_directory(defPath + projectName);
-    for (boost::filesystem::directory_entry entry : boost::filesystem::directory_iterator(templatesPath + "c++WithStdAndExternalLiblaries")) {
-        boost::filesystem::copy(entry.path(), defPath + projectName + (boost::filesystem::is_directory(entry) ? "\\" + entry.path().filename().string() : ""), boost::filesystem::copy_options::recursive);
-    }
-    runCommand("cd " + defPath + projectName + "\\premake && cd.. && git init && git add * && git commit -a -m \"Initial commit\"");
-}
-
 void run()
 {
+    // TODO: Hide console window with commands running (it looks like robocopy command in WinExec() doesn't block execution until it's finished)
     while (true) {
         try {
-            if (!boost::filesystem::exists("C:\\home\\dev\\zProject1")) {
-                createProject("zProject0");
-                boost::filesystem::rename("C:\\home\\dev\\zProject0", "C:\\home\\dev\\zProject1");
-            }
-            if (!boost::filesystem::exists("C:\\home\\dev\\zProject2")) {
-                createProject("zProject0");
-                boost::filesystem::rename("C:\\home\\dev\\zProject0", "C:\\home\\dev\\zProject2");
-            }
-            if (!boost::filesystem::exists("C:\\home\\dev\\zProject3")) {
-                createProject("zProject0");
-                boost::filesystem::rename("C:\\home\\dev\\zProject0", "C:\\home\\dev\\zProject3");
+            for (int i = 0; i < BUFFERED_PROJECTS_COUNT; ++i) {
+                if (!boost::filesystem::exists("C:\\home\\dev\\zProject" + std::to_string(i + 1))) {
+                    // NOTE: We use zProject0 to avoid a case in which Sp wants to use e.g. zProject1 while it's still being created
+                    std::system(("robocopy \"C:\\home\\dev\\sp\\templates\\c++WithStdAndExternalLiblaries\" C:\\home\\dev\\zProject0 /E & cd C:\\home\\dev\\zProject0 & git init & git add * & git commit -a -m \"Initial commit\" & cd C:\\home\\dev & rename C:\\home\\dev\\zProject0 zProject" + std::to_string(i + 1)).c_str());
+                }
             }
             SDL_Delay(600);
         }
         catch (std::exception e) {
-            MessageBoxA(0, e.what(), "Error",0 );
+            std::cout << e.what() << std::endl;
+            MessageBoxA(0, e.what(), "Error", 0);
         }
     }
 }

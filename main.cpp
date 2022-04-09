@@ -13,11 +13,6 @@
 
 #pragma warning(disable : 4996)
 
-void runCommand(std::string command)
-{
-	std::system(command.c_str());
-}
-
 void findAndReplaceAll(std::string& data, std::string toSearch, std::string replaceStr)
 {
 	// Get the first occurrence
@@ -55,7 +50,7 @@ platforms{
 	"x86",
 }
 
-os.execute("mklink /J ..\\android\\app\\jni\\SDL 				..\\vendor\\SDL")
+os.execute("mklink /J ..\\android\\app\\jni\\SDL 				..\\vendor\\SDL_2.0.12")
 os.execute("mklink /J ..\\android\\app\\jni\\SDL_image 			..\\vendor\\SDL_image")
 os.execute("mklink /J ..\\android\\app\\jni\\SDL_ttf 			..\\vendor\\SDL_ttf")
 os.execute("mklink /J ..\\android\\app\\jni\\SDL_mixer 			..\\vendor\\SDL_mixer")
@@ -185,10 +180,11 @@ project "%s"
 		ifs.close();
 		std::string content = ss.str();
 		findAndReplaceAll(content, "org.libsdl.app", "com.huberti." + lowerCaseProjectName);
+		findAndReplaceAll(content, "SDLActivity", "MyApp");
 		std::ofstream ofs(defPath + projectName + "\\android\\app\\src\\main\\AndroidManifest.xml");
 		ofs << content;
 	}
-	boost::filesystem::create_directory(defPath + projectName + "\\android\\app\\src\\main\\java\\com\\huberti\\" + lowerCaseProjectName);
+	std::system(("mkdir " + defPath + projectName + "\\android\\app\\src\\main\\java\\com\\huberti\\" + lowerCaseProjectName).c_str());
 	{
 		std::ofstream ofs(defPath + projectName + "\\android\\app\\src\\main\\java\\com\\huberti\\" + lowerCaseProjectName + "\\MyApp.java");
 		char javaFile[1024 * 50]{};
@@ -205,7 +201,7 @@ project "%s"
 )", lowerCaseProjectName.c_str());
 		ofs << javaFile;
 	}
-	runCommand("cd " + defPath + projectName + "\\premake && premake5.exe vs2022 && cd.. && START /B " + projectName + ".sln");
+	std::system(("cd " + defPath + projectName + "\\premake & premake5.exe vs2022 & cd.. & START /B " + projectName + ".sln").c_str());
 }
 
 int main(int argc, char* argv[])
@@ -228,10 +224,7 @@ int main(int argc, char* argv[])
 		// TODO: Error handling?
 		// TODO: Use threads when copying to make it much more faster.
 		if (number == "1") {
-			boost::filesystem::create_directory(defPath + projectName);
-			for (boost::filesystem::directory_entry entry : boost::filesystem::directory_iterator(templatesPath + "c++WithStdLiblaries")) {
-				boost::filesystem::copy(entry.path(), defPath + projectName + (boost::filesystem::is_directory(entry) ? "\\" + entry.path().filename().string() : ""), boost::filesystem::copy_options::recursive);
-			}
+			std::system(("robocopy " + templatesPath + "c++WithStdLiblaries " + defPath + projectName + " /E").c_str());
 			char script[1024 * 50]{};
 			std::sprintf(script,
 				R"(workspace "%s"
@@ -272,32 +265,28 @@ project "%s"
 				std::ofstream ofs(defPath + projectName + "\\premake\\premake5.lua");
 				ofs << script;
 			}
-			runCommand("cd " + defPath + projectName + "\\premake && premake5.exe vs2022 && START /B ..\\" + projectName + ".sln");
+			std::system(("cd " + defPath + projectName + "\\premake & premake5.exe vs2022 & START /B ..\\" + projectName + ".sln").c_str());
 		}
 		if (number == "2") {
 			if (boost::filesystem::exists(defPath + "zProject1"))
 			{
-				boost::filesystem::rename(defPath + "zProject1", defPath + projectName);
+				std::system(("cd " + defPath + " & rename zProject1 " + projectName).c_str());
 				createProject(projectName);
 			}
 			else if (boost::filesystem::exists(defPath + "zProject2"))
 			{
-				boost::filesystem::rename(defPath + "zProject2", defPath + projectName);
+				std::system(("cd " + defPath + " & rename zProject2 " + projectName).c_str());
 				createProject(projectName);
 			}
 			else if (boost::filesystem::exists(defPath + "zProject3"))
 			{
-				boost::filesystem::rename(defPath + "zProject3", defPath + projectName);
+				std::system(("cd " + defPath + " & rename zProject3 " + projectName).c_str());
 				createProject(projectName);
 			}
 		}
 		else if (number == "3")
 		{
-			boost::filesystem::create_directory(defPath + projectName);
-			for (boost::filesystem::directory_entry entry : boost::filesystem::directory_iterator(templatesPath + "website")) {
-				boost::filesystem::copy(entry.path(), defPath + projectName + (boost::filesystem::is_directory(entry) ? "\\" + entry.path().filename().string() : ""), boost::filesystem::copy_options::recursive);
-			}
-			runCommand("cd " + defPath + projectName + " && code index.html");
+			std::system(("robocopy " + templatesPath + "website " + defPath + projectName + " /E & cd " + defPath + projectName + " & code index.html").c_str());
 		}
 	}
 	catch (std::exception e) {

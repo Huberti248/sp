@@ -27,10 +27,6 @@
 #include <locale>
 #include <mutex>
 #include <thread>
-#include <imgui.h>
-#include <imgui_impl_sdl.h>
-#include <imgui_impl_sdlrenderer.h>
-#include <misc/cpp/imgui_stdlib.h>
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -47,6 +43,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
+#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdlrenderer.h>
+#include <misc/cpp/imgui_stdlib.h>
 using namespace std::chrono_literals;
 #endif
 #ifdef __EMSCRIPTEN__
