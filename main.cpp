@@ -204,6 +204,18 @@ project "%s"
 	std::system(("cd " + defPath + projectName + "\\premake & premake5.exe vs2022 & cd.. & START /B " + projectName + ".sln").c_str());
 }
 
+bool isOutdated(std::string path)
+{
+	std::time_t cppWithStdAndExternalLibrariesTemplateLastWriteTime;
+	{
+		std::ifstream ifs("C:\\Users\\Hubert\\AppData\\Roaming\\Huberti\\SpCreator\\data.txt");
+		std::string line;
+		std::getline(ifs, line);
+		cppWithStdAndExternalLibrariesTemplateLastWriteTime = std::stoll(line);
+	}
+	return cppWithStdAndExternalLibrariesTemplateLastWriteTime != boost::filesystem::last_write_time("C:\\home\\dev\\Sp\\templates\\c++WithStdAndExternalLibraries");
+}
+
 int main(int argc, char* argv[])
 {
 	try {
@@ -215,7 +227,7 @@ int main(int argc, char* argv[])
 			std::getline(std::cin, projectName);
 		}
 		std::string number;
-		std::cout << "1. c++WithStdLiblaries" << std::endl << "2. c++WithStdAndExternalLiblaries" << std::endl << "3. website" << std::endl << "Type number: ";
+		std::cout << "1. c++WithStdLibraries" << std::endl << "2. c++WithStdAndExternalLibraries" << std::endl << "3. website" << std::endl << "Type number: ";
 		std::cin >> number;
 		while (number != "1" && number != "2" && number != "3") {
 			std::cout << "Unknown number. Type number: ";
@@ -224,7 +236,7 @@ int main(int argc, char* argv[])
 		// TODO: Error handling?
 		// TODO: Use threads when copying to make it much more faster.
 		if (number == "1") {
-			std::system(("robocopy " + templatesPath + "c++WithStdLiblaries " + defPath + projectName + " /E").c_str());
+			std::system(("robocopy " + templatesPath + "c++WithStdLibraries " + defPath + projectName + " /E").c_str());
 			char script[1024 * 50]{};
 			std::sprintf(script,
 				R"(workspace "%s"
@@ -268,19 +280,28 @@ project "%s"
 			std::system(("cd " + defPath + projectName + "\\premake & premake5.exe vs2022 & START /B ..\\" + projectName + ".sln").c_str());
 		}
 		if (number == "2") {
-			if (boost::filesystem::exists(defPath + "zProject1"))
+			if (boost::filesystem::exists(defPath + "zProject1") && !isOutdated(defPath + "zProject1"))
 			{
 				std::system(("cd " + defPath + " & rename zProject1 " + projectName).c_str());
 				createProject(projectName);
 			}
-			else if (boost::filesystem::exists(defPath + "zProject2"))
+			else if (boost::filesystem::exists(defPath + "zProject2") && !isOutdated(defPath + "zProject2"))
 			{
 				std::system(("cd " + defPath + " & rename zProject2 " + projectName).c_str());
 				createProject(projectName);
 			}
-			else if (boost::filesystem::exists(defPath + "zProject3"))
+			else if (boost::filesystem::exists(defPath + "zProject3") && !isOutdated(defPath + "zProject3"))
 			{
 				std::system(("cd " + defPath + " & rename zProject3 " + projectName).c_str());
+				createProject(projectName);
+			}
+			else
+			{
+				/*
+				TODO: & cd C : \\home\\dev\\" + projectName + " & git init & git add * &git commit - a - m \"Initial commit\"
+				When above added to below std::system() it will take much longer time, so maybe run it in background after opening Visual Studio?
+				*/ 
+				std::system(("robocopy \"C:\\home\\dev\\sp\\templates\\c++WithStdAndExternalLibraries\" C:\\home\\dev\\" + projectName + " /E").c_str());
 				createProject(projectName);
 			}
 		}

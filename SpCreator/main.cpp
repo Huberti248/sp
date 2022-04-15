@@ -79,6 +79,7 @@ bool keys[SDL_NUM_SCANCODES];
 bool buttons[SDL_BUTTON_X2 + 1];
 SDL_Window* window;
 SDL_Renderer* renderer;
+std::string prefPath;
 
 void logOutputCallback(void* userdata, int category, SDL_LogPriority priority, const char* message)
 {
@@ -523,15 +524,32 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
 
 void run()
 {
-    // TODO: Hide console window with commands running (it looks like robocopy command in WinExec() doesn't block execution until it's finished)
+    // NOTE: When hideing console window with commands running it looks like robocopy command in WinExec() doesn't block execution until it's finished
+    prefPath = SDL_GetPrefPath("Huberti", "SpCreator");
+    std::time_t cppWithStdAndExternalLibrariesTemplateLastWriteTime = boost::filesystem::last_write_time("C:\\home\\dev\\Sp\\templates\\c++WithStdAndExternalLibraries");
     while (true) {
         try {
+            {
+                std::ofstream ofs(prefPath + "data.txt");
+                ofs << cppWithStdAndExternalLibrariesTemplateLastWriteTime;
+            }
             for (int i = 0; i < BUFFERED_PROJECTS_COUNT; ++i) {
                 if (!boost::filesystem::exists("C:\\home\\dev\\zProject" + std::to_string(i + 1))) {
                     // NOTE: We use zProject0 to avoid a case in which Sp wants to use e.g. zProject1 while it's still being created
-                    std::system(("robocopy \"C:\\home\\dev\\sp\\templates\\c++WithStdAndExternalLiblaries\" C:\\home\\dev\\zProject0 /E & cd C:\\home\\dev\\zProject0 & git init & git add * & git commit -a -m \"Initial commit\" & cd C:\\home\\dev & rename C:\\home\\dev\\zProject0 zProject" + std::to_string(i + 1)).c_str());
+                    std::system(("robocopy \"C:\\home\\dev\\sp\\templates\\c++WithStdAndExternalLibraries\" C:\\home\\dev\\zProject0 /E & cd C:\\home\\dev\\zProject0 & git init & git add * & git commit -a -m \"Initial commit\" & cd C:\\home\\dev & rename C:\\home\\dev\\zProject0 zProject" + std::to_string(i + 1)).c_str());
+                }
+                else if (cppWithStdAndExternalLibrariesTemplateLastWriteTime != boost::filesystem::last_write_time("C:\\home\\dev\\Sp\\templates\\c++WithStdAndExternalLibraries")) {
+                    /*
+                    TODO:
+                    I might not delete the whole outdated project but just update it (usually it will be a small change in source file or library addition
+                    In order to do above I need to:
+                    1. Find files and folders which doesn't exist in template and exist in zProjectX and delete them
+                    2. Find files and folders in template which aren't in zProjectX and put them there
+                    */
+                    std::system(("cd C:\\home\\dev & rmdir /S /Q zProject" + std::to_string(i + 1)).c_str());
                 }
             }
+            cppWithStdAndExternalLibrariesTemplateLastWriteTime = boost::filesystem::last_write_time("C:\\home\\dev\\Sp\\templates\\c++WithStdAndExternalLibraries");
             SDL_Delay(600);
         }
         catch (std::exception e) {
