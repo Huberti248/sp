@@ -32,6 +32,8 @@ Index of this file:
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <SDL.h>
+
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
 
@@ -4237,6 +4239,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             {
                 stb_textedit_click(state, &state->Stb, mouse_x, mouse_y);
                 state->CursorAnimReset();
+                SDL_StartTextInput();
             }
         }
         else if (io.MouseDown[0] && !state->SelectedAllMouseLock && (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f))

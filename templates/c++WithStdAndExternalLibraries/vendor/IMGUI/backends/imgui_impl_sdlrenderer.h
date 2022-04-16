@@ -13,7 +13,11 @@
 //  [X] Renderer: Support for large meshes (64k+ vertices) with 16-bit indices.
 
 #pragma once
+#ifdef __ANDROID__
+#include "../imgui.h"
+#else
 #include "imgui.h"      // IMGUI_IMPL_API
+#endif
 
 struct SDL_Renderer;
 

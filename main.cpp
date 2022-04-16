@@ -50,7 +50,7 @@ platforms{
 	"x86",
 }
 
-os.execute("mklink /J ..\\android\\app\\jni\\SDL 				..\\vendor\\SDL_2.0.12")
+os.execute("mklink /J ..\\android\\app\\jni\\SDL 				..\\vendor\\SDL_2.0.22_preRelease")
 os.execute("mklink /J ..\\android\\app\\jni\\SDL_image 			..\\vendor\\SDL_image")
 os.execute("mklink /J ..\\android\\app\\jni\\SDL_ttf 			..\\vendor\\SDL_ttf")
 os.execute("mklink /J ..\\android\\app\\jni\\SDL_mixer 			..\\vendor\\SDL_mixer")

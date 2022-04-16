@@ -8,7 +8,11 @@
 // Changelog:
 // - v0.10: Initial version. Added InputText() / InputTextMultiline() calls with std::string
 
+#ifdef __ANDROID__
+#include "../../imgui.h"
+#else
 #include "imgui.h"
+#endif
 #include "imgui_stdlib.h"
 
 struct InputTextCallback_UserData

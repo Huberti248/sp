@@ -37,6 +37,10 @@
 #include "vendor/GLM/include/glm/glm.hpp"
 #include "vendor/GLM/include/glm/gtc/matrix_transform.hpp"
 #include "vendor/GLM/include/glm/gtc/type_ptr.hpp"
+#include "vendor/IMGUI/imgui.h"
+#include "vendor/IMGUI/backends/imgui_impl_sdl.h"
+#include "vendor/IMGUI/backends/imgui_impl_sdlrenderer.h"
+#include "vendor/IMGUI/misc/cpp/imgui_stdlib.h"
 #else
 #include <filesystem>
 #include <pugixml.hpp>
@@ -362,10 +366,12 @@ struct Clock {
     }
 };
 
+#ifndef __ANDROID__
 SDL_bool SDL_FRectEmpty(const SDL_FRect* r)
 {
     return ((!r) || (r->w <= 0) || (r->h <= 0)) ? SDL_TRUE : SDL_FALSE;
 }
+#endif
 
 SDL_bool SDL_IntersectFRect(const SDL_FRect* A, const SDL_FRect* B, SDL_FRect* result)
 {

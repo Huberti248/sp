@@ -16,7 +16,11 @@
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
 
 #pragma once
+#ifdef __ANDROID__
+#include "../imgui.h"
+#else
 #include "imgui.h"      // IMGUI_IMPL_API
+#endif
 
 struct SDL_Window;
 typedef union SDL_Event SDL_Event;

@@ -23,7 +23,11 @@
 //  2021-10-06: Backup and restore modified ClipRect/Viewport.
 //  2021-09-21: Initial version.
 
+#ifdef __ANDROID__
+#include "../imgui.h"
+#else
 #include "imgui.h"
+#endif
 #include "imgui_impl_sdlrenderer.h"
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>     // intptr_t
