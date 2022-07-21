@@ -13,12 +13,7 @@
 #include <cstdlib>
 #include <random>
 
-void run()
-{
-
-}
-
 int main()
 {
-	run();
+
 }

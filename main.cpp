@@ -27,9 +27,9 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
 	}
 }
 
-std::string premakePath = "c:\\home\\dev\\sp\\premake";
-std::string defPath = "c:\\home\\dev\\";
-std::string templatesPath = "c:\\home\\dev\\sp\\templates\\";
+std::string premakePath = "c:\\home\\projects\\sp\\premake";
+std::string defPath = "c:\\home\\projects\\";
+std::string templatesPath = "c:\\home\\projects\\sp\\templates\\";
 
 void createProject(std::string projectName)
 {
@@ -213,7 +213,7 @@ bool isOutdated(std::string path)
 		std::getline(ifs, line);
 		cppWithStdAndExternalLibrariesTemplateLastWriteTime = std::stoll(line);
 	}
-	return cppWithStdAndExternalLibrariesTemplateLastWriteTime != boost::filesystem::last_write_time("C:\\home\\dev\\Sp\\templates\\c++WithStdAndExternalLibraries");
+	return cppWithStdAndExternalLibrariesTemplateLastWriteTime != boost::filesystem::last_write_time("C:\\home\\projects\\Sp\\templates\\c++WithStdAndExternalLibraries");
 }
 
 int main(int argc, char* argv[])
@@ -298,10 +298,10 @@ project "%s"
 			else
 			{
 				/*
-				TODO: & cd C : \\home\\dev\\" + projectName + " & git init & git add * &git commit - a - m \"Initial commit\"
+				TODO: & cd C : \\home\\projects\\" + projectName + " & git init & git add * &git commit - a - m \"Initial commit\"
 				When above added to below std::system() it will take much longer time, so maybe run it in background after opening Visual Studio?
 				*/ 
-				std::system(("robocopy \"C:\\home\\dev\\sp\\templates\\c++WithStdAndExternalLibraries\" C:\\home\\dev\\" + projectName + " /E").c_str());
+				std::system(("robocopy \"C:\\home\\projects\\sp\\templates\\c++WithStdAndExternalLibraries\" C:\\home\\projects\\" + projectName + " /E").c_str());
 				createProject(projectName);
 			}
 		}

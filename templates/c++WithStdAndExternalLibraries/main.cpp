@@ -502,15 +502,45 @@ void saveToFile(std::string path, std::string str)
     ofs << ss.str();
 }
 
+bool operator==(SDL_Color c1, SDL_Color c2)
+{
+	return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b && c1.a == c2.a;
+}
+
+bool operator!=(SDL_Color c1, SDL_Color c2)
+{
+	return c1.r != c2.r || c1.g != c2.g || c1.b != c2.b || c1.a != c2.a;
+}
+
+bool operator==(SDL_Point p1, SDL_Point p2)
+{
+	return p1.x == p2.x && p1.y == p2.y;
+}
+
+bool operator!=(SDL_Point p1, SDL_Point p2)
+{
+	return p1.x != p2.x || p1.y != p2.y;
+}
+
+bool operator==(SDL_Rect r1, SDL_Rect r2)
+{
+	return r1.x == r2.x && r1.y == r2.y && r1.w == r2.w && r1.h == r2.h;
+}
+
+bool operator!=(SDL_Rect r1, SDL_Rect r2)
+{
+	return r1.x != r2.x || r1.y != r2.y || r1.w != r2.w || r1.h != r2.h;
+}
+
 int eventWatch(void* userdata, SDL_Event* event)
 {
-    // WARNING: Be very careful of what you do in the function, as it may run in a different thread
+    // WARNING: Be very careful of what you do in the function, as it may run in a different thread.
     if (event->type == SDL_APP_TERMINATING || event->type == SDL_APP_WILLENTERBACKGROUND) {
     }
     return 0;
 }
 
-void run()
+int main(int argc, char* argv[])
 {
     std::srand(std::time(0));
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
@@ -540,7 +570,7 @@ void run()
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT || event.type == SDL_KEYDOWN && event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                 running = false;
-                // NOTE: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
+                // NOTE: On mobile remember to use eventWatch function (it doesn't reach this code when terminating).
             }
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 SDL_RenderSetScale(renderer, event.window.data1 / (float)windowWidth, event.window.data2 / (float)windowHeight);
@@ -578,13 +608,9 @@ void run()
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
         ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+	    SDL_RenderSetViewport(renderer, 0);
         SDL_RenderPresent(renderer);
     }
-    // NOTE: On mobile remember to use eventWatch function (it doesn't reach this code when terminating)
-}
-
-int main(int argc, char* argv[])
-{
-    run();
+    // NOTE: On mobile remember to use eventWatch function (it doesn't reach this code when terminating).
     return 0;
 }
