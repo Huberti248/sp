@@ -307,7 +307,17 @@ project "%s"
 		}
 		else if (number == "3")
 		{
-			std::system(("robocopy " + templatesPath + "website " + defPath + projectName + " /E & cd " + defPath + projectName + " & code index.html").c_str());
+			std::system(("robocopy " + templatesPath + "website " + defPath + projectName + " /E & cd " + defPath + projectName + " & code .").c_str());
+			{
+				std::ifstream ifs(defPath + projectName + "\\index.html");
+				std::stringstream ss;
+				ss << ifs.rdbuf();
+				ifs.close();
+				std::string content = ss.str();
+				findAndReplaceAll(content, "AppName_", projectName);
+				std::ofstream ofs(defPath + projectName + "\\index.html");
+				ofs << content;
+			}
 		}
 	}
 	catch (std::exception e) {
