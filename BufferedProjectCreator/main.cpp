@@ -37,7 +37,7 @@
 #endif
 #ifdef __ANDROID__
 #include "vendor/PUGIXML/src/pugixml.hpp"
-#include <android/log.h> //__android_log_print(ANDROID_LOG_VERBOSE, "SpCreator", "Example number log: %d", number);
+#include <android/log.h> //__android_log_print(ANDROID_LOG_VERBOSE, "BufferedProjectCreator", "Example number log: %d", number);
 #include <jni.h>
 #include "vendor/GLM/include/glm/glm.hpp"
 #include "vendor/GLM/include/glm/gtc/matrix_transform.hpp"
@@ -525,8 +525,8 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
 void run()
 {
     // NOTE: When hideing console window with commands running it looks like robocopy command in WinExec() doesn't block execution until it's finished
-    prefPath = SDL_GetPrefPath("Huberti", "SpCreator");
-    std::time_t cppWithStdAndExternalLibrariesTemplateLastWriteTime = boost::filesystem::last_write_time("C:\\home\\projects\\Sp\\templates\\c++WithStdAndExternalLibraries");
+    prefPath = SDL_GetPrefPath("Huberti", "BufferedProjectCreator");
+    std::time_t cppWithStdAndExternalLibrariesTemplateLastWriteTime = boost::filesystem::last_write_time("C:\\home\\projects\\ProjectCreator\\templates\\c++WithStdAndExternalLibraries");
     while (true) {
         try {
             {
@@ -535,10 +535,10 @@ void run()
             }
             for (int i = 0; i < BUFFERED_PROJECTS_COUNT; ++i) {
                 if (!boost::filesystem::exists("C:\\home\\projects\\zProject" + std::to_string(i + 1))) {
-                    // NOTE: We use zProject0 to avoid a case in which Sp wants to use e.g. zProject1 while it's still being created
-                    std::system(("robocopy \"C:\\home\\projects\\sp\\templates\\c++WithStdAndExternalLibraries\" C:\\home\\projects\\zProject0 /E & cd C:\\home\\projects\\zProject0 & git init & git add * & git commit -a -m \"Initial commit\" & cd C:\\home\\projects & rename C:\\home\\projects\\zProject0 zProject" + std::to_string(i + 1)).c_str());
+                    // NOTE: We use zProject0 to avoid a case in which ProjectCreator wants to use e.g. zProject1 while it's still being created
+                    std::system(("robocopy \"C:\\home\\projects\\ProjectCreator\\templates\\c++WithStdAndExternalLibraries\" C:\\home\\projects\\zProject0 /E & cd C:\\home\\projects\\zProject0 & git init & git add * & git commit -a -m \"Initial commit\" & cd C:\\home\\projects & rename C:\\home\\projects\\zProject0 zProject" + std::to_string(i + 1)).c_str());
                 }
-                else if (cppWithStdAndExternalLibrariesTemplateLastWriteTime != boost::filesystem::last_write_time("C:\\home\\projects\\Sp\\templates\\c++WithStdAndExternalLibraries")) {
+                else if (cppWithStdAndExternalLibrariesTemplateLastWriteTime != boost::filesystem::last_write_time("C:\\home\\projects\\ProjectCreator\\templates\\c++WithStdAndExternalLibraries")) {
                     /*
                     TODO:
                     I might not delete the whole outdated project but just update it (usually it will be a small change in source file or library addition
@@ -549,7 +549,7 @@ void run()
                     std::system(("cd C:\\home\\projects & rmdir /S /Q zProject" + std::to_string(i + 1)).c_str());
                 }
             }
-            cppWithStdAndExternalLibrariesTemplateLastWriteTime = boost::filesystem::last_write_time("C:\\home\\projects\\Sp\\templates\\c++WithStdAndExternalLibraries");
+            cppWithStdAndExternalLibrariesTemplateLastWriteTime = boost::filesystem::last_write_time("C:\\home\\projects\\ProjectCreator\\templates\\c++WithStdAndExternalLibraries");
             SDL_Delay(600);
         }
         catch (std::exception e) {
